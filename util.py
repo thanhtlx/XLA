@@ -9,13 +9,19 @@ import xml.etree.ElementTree as ET
 
 def parseXml(filepath):
     root = ET.parse(filepath).getroot()
+    res = []
+    ymax = 999999999
     for type_tag in root.findall('object/bndbox'):
-        xmin=type_tag.find("xmin")
-        xmax = type_tag.find("xmax")
-        ymin=type_tag.find("ymin")
-        ymax = type_tag.find("ymax")
-        yield xmin.text, xmax.text, ymin.text, ymax.text
-
+        if ymax <= int(type_tag.find("ymin").text):
+            yield res
+            res = []
+        xmin=  int(type_tag.find("xmin").text)
+        xmax = int(type_tag.find("xmax").text)
+        ymin=int(type_tag.find("ymin").text)
+        ymax = int(type_tag.find("ymax").text)
+        res.append((xmin, xmax, ymin, ymax))
+        # yield xmin.text, xmax.text, ymin.text, ymax.text
+    yield res
 
 def showImage(img):
     cv2.imshow("Image", img)
@@ -81,20 +87,23 @@ def remove_border(thresh, REMOVE_SCALE=3):
     return borderless
 
 
-def check_combine_column(a, b, MIN_COLUMN_SPACE=7):
+def check_combine_column(a, b, MIN_COLUMN_SPACE=10):
     #x2 > x1
     x1, y1, w1, h1 = a
     x2, y2, w2, h2 = b
 
-    col_space = x2 - (x1 + w1) + 1
-    if col_space < MIN_COLUMN_SPACE:
+    if x2 - x1 + 1 < MIN_COLUMN_SPACE or x2-x1-w1+1 < MIN_COLUMN_SPACE/4:
+        new_rect = (x1, min(y1, y2), w2+x2-x1+1,
+                    max(y1+h1, y2+h2) - min(y1, y2) + 1)
+        return new_rect
+    elif w2 < MIN_COLUMN_SPACE:
         new_rect = (x1, min(y1, y2), w2+x2-x1+1,
                     max(y1+h1, y2+h2) - min(y1, y2) + 1)
         return new_rect
     else:
         return False
 
-def reduce_col(rects, MIN_COLUMN_SPACE=7):
+def reduce_col(rects, MIN_COLUMN_SPACE=10):
     cursor = len(rects) - 1
     while cursor > 0:
         last = rects[cursor]
@@ -118,31 +127,78 @@ def ravel(lst):
     return result
 
 
-def calculate_iou(predict_bndbox, true_bndbox):
+def cal_iou_row(true_row, pred_row, img):
+    res = []
+    for pred_bnd in pred_row:
+        tmp = 0
+        for true_bnd in true_row:
+            iou = calculate_iou(pred_bnd,true_bnd,img)
+            if iou >= tmp:
+                tmp = iou
+        res.append(tmp)
+    return res
+
+def calculate_iou(predict_bndbox, true_bndbox,img):
     """
     Calculate the IOU between the precdict and the true bounding box
     Predict (x, y, w, h)
     """
-
+    # img2 = img.copy()
+    # cv2.rectangle(img2, (predict_bndbox[0], predict_bndbox[1]),
+    #               (predict_bndbox[0]+predict_bndbox[2], predict_bndbox[1]+predict_bndbox[3]), (255, 255, 255), 2)
+    # cv2.rectangle(img2, (true_bndbox[0], true_bndbox[2]),
+    #               (true_bndbox[1],true_bndbox[3]), (255,255,0), 2)
+    # showImage(img2)
     x, y, w, h = predict_bndbox
+
 
     xmin1, ymin1, xmax1, ymax1 = x, y, x+w, y+h
     xmin2, xmax2, ymin2, ymax2 = true_bndbox
 
+
+
+    area1 = (xmax1 - xmin1) * (ymax1- ymin1)
+    area2 = (xmax2 - xmin2) * (ymax2 - ymin2)
+    h = ymax1 - ymin2
+    w = xmax1 - xmin2
+    # case 1
+    if xmax2 < xmin1 :
+        return 0
+    if xmax1 < xmin2:
+        return 0
+    if ymax1 < ymin2:
+        return 0
+    if ymax2 < ymin1:
+        return 0
+    # if xmax1 < xmin2 and ymax1 < ymin2:
+    #     return 0
+    # # case 2 
+    # if xmax1 < xmin2 and ymax2 < ymin1:
+    #     return 0
+    # # case 3 
+    # if xmax2 < xmin1 and ymax2 < ymin1:
+    #     return 0
+    # # case 4 
+    # if xmax2 < xmin1 and ymin2 < ymax1:
+    #     return 0
     xmin = max(xmin1, xmin2)
     xmax = min(xmax1, xmax2)
     ymin = max(ymin1, ymin2)
     ymax = min(ymax1, ymax2)
 
-    inter_width = max(xmax - xmin + 1, 0)
-    inter_height = max(ymax - ymin + 1, 0)
-
-    inter_area = inter_width * inter_height
-
-    pred_area = w * h
-    true_area = (xmax2 - xmin2 + 1) * (ymax2 - ymin2 + 1)
-
-    union_area = pred_area + true_area - inter_area
-
-    IOU = round(inter_area / union_area, 3)
-    return IOU
+    w = abs(xmax - xmin)
+    h = abs(ymax - ymin)
+    # print(area1)
+    # print(area2)
+    # print(h*w)
+    # print("===============")
+    img2 = img.copy()
+    cv2.rectangle(img2, (predict_bndbox[0], predict_bndbox[1]),
+                  (predict_bndbox[0]+predict_bndbox[2], predict_bndbox[1]+predict_bndbox[3]), (255, 255, 255), 2)
+    # cv2.rectangle(img2, (true_bndbox[0], true_bndbox[2]),
+    #               (true_bndbox[1],true_bndbox[3]), (255,255,0), 2)
+    cv2.rectangle(img2, (xmin, ymin), (xmax,ymax), 2)
+    # showImage(img2)
+    res = round(h*w*1.0/(area1 + area2 - h*w), 4)
+    print (res)
+    return res
