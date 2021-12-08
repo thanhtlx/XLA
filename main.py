@@ -1,14 +1,9 @@
-import os
-import cv2
 from util import *
 
 
 def table_detection(img_path):
     img = cv2.imread(img_path)
     xml_path = img_path.replace(".png", ".xml")
-    print(img_path)
-    print(xml_path)
-    # resize if the row space or column space is not good
     # img = cv2.resize(img, (int(img.shape[1]*2), int(img.shape[0]*2)))
     img = preprocess(img, 2)
 
@@ -17,13 +12,11 @@ def table_detection(img_path):
     binimg = binarilize(img)
 
 
-    plt.imshow(binimg, cmap='gray')
-    plt.show()
+    showImage(binimg)
     borderless = remove_border(binimg, )
 
 
-    plt.imshow(borderless, cmap='gray')
-    plt.show()
+    showImage(borderless)
     vertical = horizontal = borderless.copy()
 
 
@@ -35,21 +28,20 @@ def table_detection(img_path):
         cv2.MORPH_RECT, (int(img_width / SCALE), 1))
     hor_dilate = cv2.dilate(horizontal, horizontal_kernel, iterations=20)
     _, hor_dilate = cv2.threshold(hor_dilate, 127, 255, cv2.THRESH_BINARY)
-    plt.imshow(hor_dilate, cmap='gray')
-    plt.show()
+    # show image
+    showImage(hor_dilate)
     vertical_kernel = cv2.getStructuringElement(
         cv2.MORPH_RECT, (1, int(img_width / SCALE)))
 
 
     ver_dilate = cv2.dilate(vertical, vertical_kernel, iterations=20)
     _, ver_dilate = cv2.threshold(ver_dilate, 127, 255, cv2.THRESH_BINARY)
-    plt.imshow(ver_dilate, cmap='gray')
-    plt.show()
+    # show image
+    showImage(ver_dilate)
     bw_and = cv2.bitwise_and(hor_dilate, ver_dilate)
 
 
-    plt.imshow(bw_and, cmap='gray')
-    plt.show()
+    showImage(bw_and)
     contours, hierarchy = cv2.findContours(
         bw_and, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
@@ -64,8 +56,8 @@ def table_detection(img_path):
         cv2.rectangle(test, (box[0], box[1]),
                     (box[0]+box[2], box[1]+box[3]), 255, 2)
 
-    plt.imshow(test, cmap='gray')
-    plt.show()
+    showImage(test)
+
     cells = [c for c in bounding_boxes]
 
 
@@ -124,8 +116,7 @@ def table_detection(img_path):
         cv2.rectangle(test, (box[0], box[1]),
                     (box[0]+box[2], box[1]+box[3]), 255, 2)
 
-    plt.imshow(test, cmap='gray')
-    plt.show()
+    showImage(test)
     descartes = []
 
     # read file 

@@ -1,9 +1,15 @@
 import cv2
+import os
 import numpy as np
 import pandas as pd
 from PIL import Image, ImageEnhance
 import math
 import matplotlib.pyplot as plt
+
+
+def showImage(img):
+    cv2.imshow("Image", img)
+    cv2.waitKey(0)
 
 def display_bgr2rgp(img):
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -34,12 +40,12 @@ def avg_height_of_center(row):
 
 
 def binarilize(img):
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    blur = cv.GaussianBlur(gray, (3, 3), 0, 0)
-    thresh = cv.adaptiveThreshold(
-        ~blur, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 5, -2,)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (3, 3), 0, 0)
+    thresh = cv2.adaptiveThreshold(
+        ~blur, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 5, -2,)
     # remove border noise
-    cv.rectangle(thresh, (0, 0), thresh.shape[::-1], 0, 3)
+    cv2.rectangle(thresh, (0, 0), thresh.shape[::-1], 0, 3)
     return thresh
 
 
@@ -48,19 +54,19 @@ def remove_border(thresh, REMOVE_SCALE=3):
     vertical = horizontal = thresh.copy()
     img_height, img_width = horizontal.shape
 
-    horizontal_kernel = cv.getStructuringElement(
-        cv.MORPH_RECT, (int(img_width / REMOVE_SCALE), 1))
-    horizontally_opened = cv.morphologyEx(
-        thresh, cv.MORPH_OPEN, horizontal_kernel)
-    vertical_kernel = cv.getStructuringElement(
-        cv.MORPH_RECT, (1, int(img_height / REMOVE_SCALE)))
-    vertically_opened = cv.morphologyEx(thresh, cv.MORPH_OPEN, vertical_kernel)
+    horizontal_kernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (int(img_width / REMOVE_SCALE), 1))
+    horizontally_opened = cv2.morphologyEx(
+        thresh, cv2.MORPH_OPEN, horizontal_kernel)
+    vertical_kernel = cv2.getStructuringElement(
+        cv2.MORPH_RECT, (1, int(img_height / REMOVE_SCALE)))
+    vertically_opened = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, vertical_kernel)
     both = horizontally_opened + vertically_opened
-    both = cv.dilate(both, cv.getStructuringElement(cv.MORPH_RECT, (5, 5)))
+    both = cv2.dilate(both, cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5)))
 
     borderless = thresh - both
-    borderless = cv.morphologyEx(
-        borderless, cv.MORPH_OPEN, cv.getStructuringElement(cv.MORPH_CROSS, (2, 2)))
+    borderless = cv2.morphologyEx(
+        borderless, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (2, 2)))
 
     return borderless
 
