@@ -5,6 +5,16 @@ import pandas as pd
 from PIL import Image, ImageEnhance
 import math
 import matplotlib.pyplot as plt
+import xml.etree.ElementTree as ET
+
+def parseXml(filepath):
+    root = ET.parse(filepath).getroot()
+    for type_tag in root.findall('object/bndbox'):
+        xmin=type_tag.find("xmin")
+        xmax = type_tag.find("xmax")
+        ymin=type_tag.find("ymin")
+        ymax = type_tag.find("ymax")
+        yield xmin.text, xmax.text, ymin.text, ymax.text
 
 
 def showImage(img):
@@ -71,7 +81,7 @@ def remove_border(thresh, REMOVE_SCALE=3):
     return borderless
 
 
-def check_combine_column(a, b, MIN_COLUMN_SPACE=12):
+def check_combine_column(a, b, MIN_COLUMN_SPACE=7):
     #x2 > x1
     x1, y1, w1, h1 = a
     x2, y2, w2, h2 = b
@@ -84,7 +94,7 @@ def check_combine_column(a, b, MIN_COLUMN_SPACE=12):
     else:
         return False
 
-def reduce_col(rects, MIN_COLUMN_SPACE=12):
+def reduce_col(rects, MIN_COLUMN_SPACE=7):
     cursor = len(rects) - 1
     while cursor > 0:
         last = rects[cursor]
