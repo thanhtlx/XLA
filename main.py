@@ -5,8 +5,9 @@ from util import *
 
 def table_detection(img_path):
     img = cv2.imread(img_path)
-
-
+    xml_path = img_path.replace(".png", ".xml")
+    print(img_path)
+    print(xml_path)
     # resize if the row space or column space is not good
     # img = cv2.resize(img, (int(img.shape[1]*2), int(img.shape[0]*2)))
     img = preprocess(img, 2)
@@ -120,7 +121,7 @@ def table_detection(img_path):
 
     bnd_rects = ravel(new_rows)
     for box in bnd_rects:
-        cv.rectangle(test, (box[0], box[1]),
+        cv2.rectangle(test, (box[0], box[1]),
                     (box[0]+box[2], box[1]+box[3]), 255, 2)
 
     plt.imshow(test, cmap='gray')
@@ -147,5 +148,5 @@ def table_detection(img_path):
 
 
 if __name__ == "__main__":
-    {table_detection('./train/' + i) for i in os.listdir('./train/') if i.endswith('.png')
+    {table_detection('./data_test/' + i) for i in os.listdir('./data_test/') if i.endswith('.png')
     or i.endswith('.PNG') or i.endswith('.jpg') or i.endswith('.JPG')}
