@@ -1,13 +1,31 @@
-# BTL-XLA 
-Bài tập lớn xử lý ảnh (Table cell structure detection)
+# BÀI TẬP LỚN XỬ LÝ ẢNH 
 
-Nhóm 4: Vũ Trọng Thanh (Trưởng nhóm)
-        Vũ Minh Tuyến
-        Nguyễn Ngọc Trường Sơn
-        Trần Ngọc Thắng
-        Trần Vũ Toàn
-        Nguyễn Văn Thành
+Nhóm 4: 
+* Vũ Trọng Thanh (Trưởng nhóm) 
+* Vũ Minh Tuyến 
+* Nguyễn Ngọc Trường Sơn 
+* Trần Ngọc Thắng 
+* Trần Vũ Toàn 
+* Nguyễn Văn Thành
 
-Trong folder train tạo 3 folder annotations, images, cell data </br>
-Chuyển các file annot và image vào trong folder tương ứng </br>
-Chạy file scrap trước để tạo dữ liệu trong folder cell data </br>
+
+
+## Installation
+
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install library dependencies.
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run
+
+```bash
+python3 main.py
+```
+
+## Usage
+Đưa dữ liệu vào các folder data_test và data_train 
+
+## License
+[UET](https://uet.vnu.edu.vn/)
