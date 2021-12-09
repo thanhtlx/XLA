@@ -8,6 +8,8 @@ Nhóm 4:
 * Trần Vũ Toàn 
 * Nguyễn Văn Thành
 
+* File docs (Ae vào chỉnh sửa mọi thứ cho ổn để chiều xuất sang PDF)
+* Link: https://docs.google.com/document/d/1zsjhn9MchHC-Vv-vLppXQvLYZ2jN2Jqv/edit?usp=sharing&ouid=114314958390553886167&rtpof=true&sd=true
 
 
 ## Installation
